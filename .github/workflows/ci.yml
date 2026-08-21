@@ -31,4 +31,16 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Build image
-        run: docker build -t almanach-meteo:${{ github.sha }} .
+        run: docker build -t bulletin-24:${{ github.sha }} .
+
+      - name: Runtime smoke test (container must start and serve)
+        run: |
+          docker run -d --rm --name smoke -p 8000:8000 \
+            -e PORT=8000 -e WEB_CONCURRENCY=1 bulletin-24:${{ github.sha }}
+          for i in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:8000/choisir-ville > /dev/null; then
+              echo "Container serves requests ✓"; exit 0
+            fi
+            sleep 1
+          done
+          echo "Container failed to serve within 20s"; docker logs smoke; exit 1
