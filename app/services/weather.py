@@ -56,6 +56,7 @@ _MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin",
 
 # Thread-safe-enough cache at this scale: dict + timestamps under the GIL.
 _cache: dict[tuple[float, float], tuple[float, dict]] = {}
+_batch_cache: dict[tuple[str, ...], tuple[float, list[dict]]] = {}
 
 
 def label_for_code(code) -> str:
@@ -138,3 +139,40 @@ def _parse(data: dict) -> dict:
         },
         "days": days,
     }
+
+
+def fetch_current_many(city_list: list[dict]) -> list[dict] | None:
+    """Current temperature for many cities in ONE batched API call.
+
+    Returns [{slug, name, temp, condition}, ...] in input order,
+    or None on any failure — the caller degrades to hiding the strip.
+    """
+    slugs = tuple(c["slug"] for c in city_list)
+    now = time.monotonic()
+    cached = _batch_cache.get(slugs)
+    if cached and now - cached[0] < CACHE_TTL_SECONDS:
+        return cached[1]
+
+    params = {
+        "latitude": ",".join(str(c["lat"]) for c in city_list),
+        "longitude": ",".join(str(c["lon"]) for c in city_list),
+        "current": "temperature_2m,weather_code",
+        "timezone": TIMEZONE,
+    }
+    resp = requests.get(OPEN_METEO_URL, params=params, timeout=REQUEST_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+    if isinstance(data, dict):  # single-coordinate responses are not lists
+        data = [data]
+
+    out = [
+        {
+            "slug": city["slug"],
+            "name": city["name"],
+            "temp": item["current"]["temperature_2m"],
+            "condition": label_for_code(item["current"]["weather_code"]),
+        }
+        for city, item in zip(city_list, data, strict=True)
+    ]
+    _batch_cache[slugs] = (now, out)
+    return out
