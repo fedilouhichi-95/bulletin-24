@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: bulletin-24
+    runtime: docker
+    plan: free
+    healthCheckPath: /choisir-ville
+    autoDeploy: true

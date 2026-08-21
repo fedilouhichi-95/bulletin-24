@@ -23,6 +23,14 @@ python run.py            # http://localhost:5000
 | `docker build -t almanach-meteo . && docker run -p 8000:8000 almanach-meteo` | containerized run |
 | `python scripts/fetch_images.py` | (re)download city photos from Wikimedia Commons |
 
+## Deploy (Render free tier)
+
+The repo ships `render.yaml` (blueprint). On [render.com](https://render.com):
+sign in with GitHub → **New +** → **Web Service** → pick `bulletin-24` →
+plan **Free** → create. Auto-deploys on every push to `main`.
+Free tier note: the service sleeps after 15 idle minutes; first request
+wakes it (~50 s).
+
 ## Layout
 
 - `app/` — Flask app: `routes.py`, `services/cities.py` (24 cities), `services/weather.py` (Open-Meteo + cache)

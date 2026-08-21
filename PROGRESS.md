@@ -26,7 +26,11 @@
 2. Per-city theme refinements (feature #2): two-ink compositions, region-photo captions review
 3. Current-weather extras from Open-Meteo (UV, precipitation probability) if wanted
 4. Hourly forecast strip (not in v1 SPEC — ask before adding)
-5. Deployment phase: provision VPS, install Docker, add CD job (SSH deploy) behind secrets
+5. Deployment phase: Render free tier chosen over VPS for 0-cost launch —
+   blueprint `render.yaml` committed; service created via render.com UI
+   (Docker runtime, autoDeploy on main). Live URL recorded once first
+   deploy succeeds. Oracle Cloud Always-Free VPS kept as a future
+   DevOps-learning exercise.
 
 ## 📌 Decisions taken
 
