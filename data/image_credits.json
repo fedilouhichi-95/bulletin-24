@@ -21,11 +21,11 @@
     "file": "Musée militaire de mannouba.jpg"
   },
   "nabeul": {
-    "title": "Medium Nabeul plate",
-    "author": "Nicholas Johnson from Brookline, MA, USA",
-    "license": "CC0",
-    "page_url": "https://commons.wikimedia.org/wiki/File:Medium_Nabeul_plate.jpg",
-    "file": "Medium Nabeul plate.jpg"
+    "title": "Nabeul Beach",
+    "author": "Beata Zdyb",
+    "license": "CC BY-SA 3.0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Nabeul_Beach.jpg",
+    "file": "Nabeul Beach.jpg"
   },
   "zaghouan": {
     "title": "Zaghouan City Mountain",
@@ -159,5 +159,12 @@
     "license": "CC BY-SA 3.0",
     "page_url": "https://commons.wikimedia.org/wiki/File:Medenine-stegop-06.jpg",
     "file": "Medenine-stegop-06.jpg"
+  },
+  "ariana": {
+    "title": "Ariana 2 - Tunisia",
+    "author": "DrFO.Jr.Tn",
+    "license": "CC BY-SA 3.0",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Ariana_2_-_Tunisia.jpg",
+    "file": "Ariana 2 - Tunisia.jpg"
   }
 }
