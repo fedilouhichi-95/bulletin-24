@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Choisis ta ville — L'Almanach du Ciel{% endblock %}
+
+{% block content %}
+<section class="picker">
+  <h1 class="picker__title misprint">Choisis ta ville</h1>
+  <p class="picker__intro">L'almanach s'imprime pour les 24 chefs-lieux de Tunisie.
+     Ta ville est retenue pour tes prochaines visites.</p>
+
+  <form method="post" action="/choisir-ville" class="picker__grid">
+    {% for c in cities %}
+    <button type="submit" name="ville" value="{{ c.slug }}" class="city-card"
+            style="--card-accent: {{ c.accent }}">
+      {% if images[c.slug] %}
+      <img class="city-card__photo" src="{{ url_for('static', filename='img/cities/' ~ c.image) }}"
+           alt="" loading="lazy" width="240" height="150">
+      {% else %}
+      <span class="city-card__monogram">{{ c.name[0] }}</span>
+      {% endif %}
+      <span class="city-card__name">{{ c.name }}</span>
+    </button>
+    {% endfor %}
+  </form>
+</section>
+{% endblock %}

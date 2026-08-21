@@ -1,0 +1,46 @@
+# SPEC — Almanach du Ciel Tunisien
+
+Weather web app for Tunisia only. First-time visitors pick their city from the 24
+governorate capitals; each city renders as a unique screen-printed almanac page
+(Lo-Fi / risograph aesthetic) with a real free-licensed photo of the city or its
+region, treated with halftone. Weather data comes from Open-Meteo (free, no API key).
+
+## Stack
+
+- Python 3.12 + Flask (server-rendered Jinja templates, cookie for city choice)
+- Open-Meteo Forecast API (no key) + in-memory cache (30 min TTL)
+- Frontend: vanilla HTML/CSS/JS, Lo-Fi almanach design system
+- Tests: pytest (minimal), Lint: ruff
+- DevOps: Dockerfile + GitHub Actions CI (lint → tests → docker build), target VPS
+
+## Features v1 (prioritized)
+
+1. **Onboarding — city picker**: without a `city` cookie → `/choisir-ville`
+   form listing the 24 governorate capitals. Choice stored in a cookie (1 year).
+   *Accept: visiting `/` without cookie redirects to the form; picking a city lands on its almanach page.*
+2. **Unique identity per city**: photo + riso accent color per city
+   (`static/img/cities/<slug>.jpg`, `app/static/css/themes.css`).
+   Ariana has no usable free photo → typographic-only page variant.
+   *Accept: Mahdia, Sfax and Tozeur pages are visually distinct.*
+3. **Current weather** (Open-Meteo): temperature, WMO condition label (FR),
+   wind speed + compass direction, humidity.
+   *Accept: values shown match Open-Meteo response for the chosen city.*
+4. **5-day forecast**: min/max temperatures + condition per day.
+   *Accept: exactly 5 dated rows, dates in French.*
+5. **"Ma position" geolocation button**: browser geolocation → nearest catalog
+   city via haversine → cookie set → page reloads on that city.
+   *Accept: clicking the button from Sousse area selects Sousse.*
+6. **Change city anytime + credits page**: footer links to `/choisir-ville`
+   and `/credits` (photographer + license per image, Commons requirement).
+7. **DevOps pipeline**: ruff → pytest → docker build on every push (GitHub Actions).
+
+## Out of scope v1
+
+User accounts, saved favorites (beyond single cookie), maps/fancy charts,
+native mobile app, multi-language UI (French only), cities outside Tunisia.
+
+## Honest-content rules
+
+- Region photos used when the capital lacks one are labeled « Région de X ».
+- Every image ships with photographer + license on `/credits`.
+- No fabricated data: if Open-Meteo fails, an explicit error state is shown.

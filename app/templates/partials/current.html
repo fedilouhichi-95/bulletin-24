@@ -1,0 +1,16 @@
+<section class="entries">
+  <dl class="entries__grid">
+    <div class="entry">
+      <dt>Température ressentie</dt>
+      <dd>{{ weather.current.feels_like | round(0) | int }}°C</dd>
+    </div>
+    <div class="entry">
+      <dt>Vent</dt>
+      <dd>{{ weather.current.wind_kmh | round(0) | int }} km/h — secteur {{ weather.current.wind_dir }}</dd>
+    </div>
+    <div class="entry">
+      <dt>Humidité</dt>
+      <dd>{{ weather.current.humidity }}%</dd>
+    </div>
+  </dl>
+</section>

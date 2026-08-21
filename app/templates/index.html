@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ city.name }} — L'Almanach du Ciel{% endblock %}
+
+{% block content %}
+{% if error %}
+<section class="error-note">
+  <p>{{ error }}</p>
+  <p><a class="retry" href="/">Relancer</a></p>
+</section>
+{% endif %}
+
+{% if weather %}
+<article class="page">
+  <header class="page__head">
+    {% if has_photo %}
+    <figure class="photo tilt-a">
+      <img src="{{ url_for('static', filename='img/cities/' ~ city.image) }}"
+           alt="Photo de {{ city.name }}" width="960" height="600">
+      <figcaption class="photo__caption">{{ city.note or (city.name ~ ' — Wikimedia Commons') }}</figcaption>
+    </figure>
+    {% else %}
+    <div class="typo-hero tilt-a">
+      <span class="typo-hero__letter">{{ city.name[0] }}</span>
+      <span class="typo-hero__rest">{{ city.name[1:] }}</span>
+    </div>
+    {% endif %}
+
+    <div class="stamp tilt-b">
+      <span class="stamp__temp">{{ weather.current.temp | round(0) | int }}°C</span>
+      <span class="stamp__cond">{{ weather.current.condition }}</span>
+    </div>
+
+    <h1 class="city-name misprint">{{ city.name }}</h1>
+  </header>
+
+  {% include "partials/current.html" %}
+
+  <section class="forecast">
+    <h2 class="forecast__title">Les cinq prochains jours</h2>
+    {% include "partials/forecast.html" %}
+  </section>
+</article>
+
+<button id="geoloc" type="button" class="geoloc">Ma position</button>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+{% endblock %}

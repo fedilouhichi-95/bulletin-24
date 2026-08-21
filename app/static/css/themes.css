@@ -1,0 +1,14 @@
+/* Per-city accents are injected as --accent on <body> from cities.py.
+   These helpers give the accent a few deliberate places to live. */
+
+.page__head { --stamp-ink: var(--accent); }
+
+.stamp,
+.stamp__temp { color: var(--stamp-ink, var(--ink)); }
+
+.stamp { border-color: currentColor; }
+
+.city-name em,
+.forecast__title em { color: var(--accent, inherit); font-style: italic; }
+
+.almanac-table tbody tr td:first-child::marker { color: var(--accent); }

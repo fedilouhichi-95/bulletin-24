@@ -1,0 +1,14 @@
+<table class="almanac-table">
+  <thead>
+    <tr><th scope="col">Jour</th><th scope="col">Temps</th><th scope="col">Haut / Bas</th></tr>
+  </thead>
+  <tbody>
+    {% for day in weather.days %}
+    <tr>
+      <td class="almanac-table__day">{{ day.label_fr }}</td>
+      <td class="almanac-table__cond">{{ day.condition }}</td>
+      <td class="almanac-table__temps">{{ day.tmax | round(0) | int }}° / {{ day.tmin | round(0) | int }}°</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

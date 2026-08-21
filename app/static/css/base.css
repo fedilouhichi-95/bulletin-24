@@ -1,0 +1,358 @@
+/* Lo-Fi anchor tokens — "Almanach tunisien"
+   Surface: paper-yellow. Typefaces: system mix (Times / Helvetica / Courier).
+   Structure: rotated elements, halftone photo screens, riso misregistration. */
+
+:root {
+  --paper: #E8E0C0;
+  --ink: #211D16;
+  --rule: rgba(33, 29, 22, 0.28);
+  --font-display: "Times New Roman", Times, Georgia, serif;
+  --font-body: Helvetica, Arial, sans-serif;
+  --font-data: "Courier New", Courier, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--paper); }
+
+body {
+  margin: 0 auto;
+  max-width: 46rem;
+  padding: 0 1.25rem 3rem;
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.45;
+  position: relative;
+}
+
+/* Paper grain over everything, never interactive */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  z-index: 5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+a { color: inherit; }
+a:hover { text-decoration-thickness: 2px; }
+
+.misprint {
+  text-shadow: 2px 0 rgba(255, 0, 110, 0.55), -2px 0 rgba(0, 255, 204, 0.55);
+}
+
+.tilt-a { transform: rotate(-2deg); }
+.tilt-b { transform: rotate(1.6deg); }
+
+/* ---------- Masthead ---------- */
+
+.masthead {
+  border-bottom: 3px double var(--ink);
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+}
+
+.masthead__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 6vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.masthead__sub {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-top: 0.35rem;
+}
+
+/* ---------- City picker (onboarding) ---------- */
+
+.picker__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 7vw, 3.4rem);
+  line-height: 1.05;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.picker__intro {
+  font-family: var(--font-data);
+  font-size: 0.85rem;
+  max-width: 34rem;
+  margin-bottom: 1.75rem;
+}
+
+.picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 1.1rem 0.9rem;
+}
+
+.city-card {
+  appearance: none;
+  background: none;
+  border: 2px solid var(--card-accent, var(--ink));
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  padding: 0.45rem;
+  text-align: center;
+}
+
+.city-card:nth-child(odd) { transform: rotate(-1.2deg); }
+.city-card:nth-child(even) { transform: rotate(0.9deg); }
+.city-card:hover { transform: rotate(0deg) translateX(2px); }
+
+.city-card__photo {
+  width: 100%;
+  height: 5.2rem;
+  object-fit: cover;
+  filter: grayscale(0.25) contrast(1.08) sepia(0.12);
+  display: block;
+}
+
+.city-card__monogram {
+  display: block;
+  height: 5.2rem;
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  line-height: 5.2rem;
+  color: var(--card-accent, var(--ink));
+}
+
+.city-card__name {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 0.82rem;
+  margin-top: 0.45rem;
+}
+
+/* ---------- Almanac page ---------- */
+
+.page__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.photo {
+  position: relative;
+  margin: 0;
+  flex: 1 1 20rem;
+  max-width: 26rem;
+  border: 2px solid var(--ink);
+  outline: 2px solid var(--paper);
+  outline-offset: -6px;
+}
+
+.photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: grayscale(0.3) contrast(1.15) sepia(0.18) brightness(1.02);
+}
+
+/* Halftone dot screen pressed over the print */
+.photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, transparent 55%, var(--paper) 130%);
+  background-size: 5px 5px;
+  mix-blend-mode: multiply;
+}
+
+.photo__caption {
+  position: absolute;
+  bottom: -1.1rem;
+  right: -0.6rem;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  font-family: var(--font-data);
+  font-size: 0.66rem;
+  padding: 0.15rem 0.5rem;
+  transform: rotate(2deg);
+}
+
+/* Typographic variant when no photo exists (Ariana) */
+.typo-hero {
+  flex: 1 1 20rem;
+  min-height: 11rem;
+  border: 2px solid var(--ink);
+  outline: 2px solid var(--paper);
+  outline-offset: -6px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  overflow: hidden;
+  padding-top: 1rem;
+}
+
+.typo-hero__letter {
+  font-family: var(--font-display);
+  font-size: 11rem;
+  line-height: 1;
+  color: var(--accent, #B4552D);
+}
+
+.typo-hero__rest {
+  font-family: var(--font-body);
+  font-weight: bold;
+  font-size: 3.2rem;
+  letter-spacing: 0.06em;
+}
+
+.stamp {
+  order: 2;
+  margin-left: auto;
+  border: 3px solid var(--accent, #B4552D);
+  color: var(--accent, #B4552D);
+  padding: 0.7rem 1rem 0.85rem;
+  text-align: center;
+  font-family: var(--font-data);
+}
+
+.stamp__temp {
+  display: block;
+  font-size: clamp(2.6rem, 8vw, 4rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stamp__cond {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 0.4rem;
+}
+
+.city-name {
+  flex-basis: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 8vw, 4.2rem);
+  line-height: 1;
+  margin: 0.4rem 0 0;
+}
+
+/* ---------- Entries & forecast ---------- */
+
+.entries { border-bottom: 1px solid var(--ink); }
+
+.entries__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0 1.5rem;
+  margin: 1.25rem 0;
+  padding: 0;
+}
+
+.entry dt {
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+.entry dd {
+  margin: 0.2rem 0 0.9rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-style: italic;
+}
+
+.forecast__title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin: 1.75rem 0 0.75rem;
+}
+
+.almanac-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-data);
+  font-size: 0.88rem;
+}
+
+.almanac-table th {
+  text-align: left;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+  border-bottom: 2px solid var(--ink);
+  padding: 0.4rem 0.5rem 0.4rem 0;
+}
+
+.almanac-table td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.55rem 0.5rem 0.55rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.almanac-table__day { font-family: var(--font-display); font-size: 1.02rem; }
+.almanac-table__temps { white-space: nowrap; }
+
+.geoloc {
+  appearance: none;
+  background: none;
+  border: 2px solid var(--ink);
+  font-family: var(--font-data);
+  font-size: 0.85rem;
+  padding: 0.5rem 1.1rem;
+  margin-top: 2rem;
+  cursor: pointer;
+}
+
+.geoloc:hover { background: var(--ink); color: var(--paper); }
+
+.error-note {
+  border: 2px solid #A63D40;
+  padding: 1rem 1.25rem;
+  font-family: var(--font-data);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  transform: rotate(-0.6deg);
+}
+
+.retry { font-family: var(--font-body); }
+
+/* ---------- Credits ---------- */
+
+.credits__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+}
+
+.credits__list { list-style: none; padding: 0; }
+
+.credits__row {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.8rem 0;
+  font-family: var(--font-data);
+  font-size: 0.84rem;
+}
+
+.credits__row strong { font-family: var(--font-display); font-size: 1.1rem; }
+
+/* ---------- Colophon ---------- */
+
+.colophon {
+  margin-top: 3.5rem;
+  border-top: 3px double var(--ink);
+  padding-top: 0.75rem;
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+}
+
+.colophon__links { display: flex; gap: 1.5rem; margin-bottom: 0.4rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

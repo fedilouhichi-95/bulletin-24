@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Crédits photos — L'Almanach du Ciel{% endblock %}
+
+{% block content %}
+<section class="credits">
+  <h1 class="credits__title misprint">Crédits photos</h1>
+  {% if entries %}
+  <ul class="credits__list">
+    {% for e in entries %}
+    <li class="credits__row">
+      <strong>{{ e.city.name }}</strong>{% if e.city.note %} — {{ e.city.note }}{% endif %}<br>
+      «&nbsp;{{ e.title }}&nbsp;» par {{ e.author }},
+      licence {{ e.license }}.
+      <a href="{{ e.page_url }}" rel="license">Source</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Aucune image créditée pour le moment.</p>
+  {% endif %}
+</section>
+{% endblock %}
