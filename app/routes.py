@@ -1,7 +1,8 @@
-"""HTTP routes — the whole app is four endpoints, SSR-first."""
+"""HTTP routes — SSR-first, one blueprint, four endpoints."""
 
-import json
 import math
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from flask import Blueprint, abort, redirect, render_template, request
 
@@ -11,17 +12,34 @@ from .services import weather as weather_service
 
 bp = Blueprint("main", __name__)
 
-CREDITS_PATH = BASE_DIR / "data" / "image_credits.json"
 IMAGES_DIR = BASE_DIR / "app" / "static" / "img" / "cities"
 COOKIE_MAX_AGE = 365 * 24 * 3600
+TZ_TUNIS = ZoneInfo("Africa/Tunis")
 
-
-def current_city_or_none() -> dict | None:
-    return city_service.get_city(request.cookies.get("city", ""))
+BRAND = {
+    "name": "Bulletin 24",
+    "tagline": "La météo imprimée des villes de Tunisie",
+}
 
 
 def image_exists(city: dict) -> bool:
     return bool(city["image"]) and (IMAGES_DIR / city["image"]).is_file()
+
+
+@bp.app_context_processor
+def inject_brand():
+    """Brand block + real edition dateline for every page."""
+    now = datetime.now(TZ_TUNIS)
+    return {
+        "brand": BRAND,
+        "year": now.year,
+        "edition_fr": f"Édition de {now.strftime('%H:%M')} — "
+                      f"{weather_service.format_date_fr(now.date().isoformat())} {now.year}",
+    }
+
+
+def current_city_or_none() -> dict | None:
+    return city_service.get_city(request.cookies.get("city", ""))
 
 
 @bp.get("/")
@@ -40,12 +58,21 @@ def index():
             "Réessaie dans quelques instants."
         )
 
+    elsewhere = None
+    if data is not None:
+        others = [c for c in city_service.CITIES if c["slug"] != city["slug"]]
+        try:
+            elsewhere = weather_service.fetch_current_many(others)
+        except Exception:  # noqa: BLE001 — the strip is optional decoration of real data
+            elsewhere = None
+
     return render_template(
         "index.html",
         city=city,
         has_photo=image_exists(city),
         weather=data,
         error=error_state,
+        elsewhere=elsewhere,
     )
 
 
@@ -67,6 +94,17 @@ def choisir_ville():
     )
 
 
+@bp.get("/ville/<slug>")
+def pick_city(slug: str):
+    city = city_service.get_city(slug)
+    if city is None:
+        abort(404, description="Ville inconnue.")
+    resp = redirect("/")
+    resp.set_cookie("city", slug, max_age=COOKIE_MAX_AGE, httponly=True,
+                    samesite="Lax")
+    return resp
+
+
 @bp.get("/api/position")
 def api_position():
     try:
@@ -84,21 +122,6 @@ def api_position():
             _haversine_km(lat, lon, nearest["lat"], nearest["lon"]), 1
         ),
     }
-
-
-@bp.get("/credits")
-def credits():
-    entries = []
-    by_slug = {}
-    if CREDITS_PATH.is_file():
-        with open(CREDITS_PATH, encoding="utf-8") as fh:
-            by_slug = json.load(fh)
-    for city in city_service.CITIES:
-        info = by_slug.get(city["slug"])
-        if not info or not image_exists(city):
-            continue
-        entries.append({"city": city, **info})
-    return render_template("credits.html", entries=entries)
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

@@ -1,11 +1,15 @@
 // Geolocation nicety: find nearest catalog city and reload on it.
+// Any element with [data-geoloc] triggers it (menu item + page button).
 (function () {
   "use strict";
 
-  const btn = document.getElementById("geoloc");
-  if (!btn || !navigator.geolocation) return;
+  const buttons = document.querySelectorAll("[data-geoloc]");
+  if (!buttons.length || !navigator.geolocation) {
+    buttons.forEach((b) => (b.disabled = true));
+    return;
+  }
 
-  btn.addEventListener("click", () => {
+  const locate = (btn) => {
     btn.disabled = true;
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -30,5 +34,7 @@
       },
       { timeout: 8000, maximumAge: 600000 },
     );
-  });
+  };
+
+  buttons.forEach((btn) => btn.addEventListener("click", () => locate(btn)));
 })();

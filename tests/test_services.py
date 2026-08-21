@@ -89,6 +89,37 @@ def test_cache_prevents_second_http_call(monkeypatch):
     assert first == second
 
 
+BATCH_SAMPLE = [
+    {"current": {"temperature_2m": 30.2, "weather_code": 0}},
+    {"current": {"temperature_2m": 27.8, "weather_code": 3}},
+]
+
+
+def test_fetch_current_many_parses_batch(monkeypatch):
+    class FakeResp:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return BATCH_SAMPLE
+
+    captured = {}
+
+    def fake_get(url, params=None, timeout=None):
+        captured["params"] = params
+        return FakeResp()
+
+    monkeypatch.setattr(weather_service.requests, "get", fake_get)
+    weather_service._batch_cache.clear()
+    by_slug = {c["slug"]: c for c in CITIES}
+    cities_subset = [by_slug["tunis"], by_slug["sfax"]]
+    out = weather_service.fetch_current_many(cities_subset)
+    assert [o["slug"] for o in out] == ["tunis", "sfax"]
+    assert out[0]["condition"] == "Ciel dégagé"
+    assert out[1]["temp"] == 27.8
+    assert captured["params"]["latitude"].count(",") == 1  # batched in one call
+
+
 # ---------- Routes ----------
 
 @pytest.fixture()
@@ -137,9 +168,7 @@ def test_haversine_tunis_sfax_is_reasonable():
     assert 220 < km < 250  # real-world distance ≈ 230 km
 
 
-# ---------- Credits page ----------
+# ---------- Removed surfaces ----------
 
-def test_credits_page_renders_without_data_file(client, monkeypatch):
-    monkeypatch.setattr("app.routes.CREDITS_PATH", Path("/nonexistent/credits.json"))
-    html = client.get("/credits").get_data(as_text=True)
-    assert "Crédits photos" in html
+def test_credits_route_is_gone(client):
+    assert client.get("/credits").status_code == 404

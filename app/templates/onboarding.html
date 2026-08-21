@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Choisis ta ville — L'Almanach du Ciel{% endblock %}
+{% block title %}Ta ville, ton bulletin — {{ brand.name }}{% endblock %}
+{% block meta_description %}Vingt-quatre bulletins météo s'impriment chaque jour en Tunisie. Choisis ta ville, ton bulletin t'attend à chaque visite.{% endblock %}
 
 {% block content %}
 <section class="picker">
-  <h1 class="picker__title misprint">Choisis ta ville</h1>
-  <p class="picker__intro">L'almanach s'imprime pour les 24 chefs-lieux de Tunisie.
-     Ta ville est retenue pour tes prochaines visites.</p>
+  <h1 class="picker__title misprint">Ta ville, ton bulletin</h1>
+  <p class="picker__intro">Vingt-quatre bulletins s'impriment chaque jour dans les
+     ateliers de Tunisie. Choisis le tien — il t'attendra à chaque visite.</p>
 
   <form method="post" action="/choisir-ville" class="picker__grid">
     {% for c in cities %}

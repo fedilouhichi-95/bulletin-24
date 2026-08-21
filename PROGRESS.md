@@ -30,6 +30,19 @@
 
 ## 📌 Decisions taken
 
+- Product renamed **Bulletin 24** (was "Almanach du Ciel", then "Sama") — single
+  source of truth: `BRAND` dict in `app/routes.py`, templates use `{{ brand.name }}`
+- Three-dot menu (top-left, `<details>` HTML, no JS to open) hosts city change,
+  geolocation and credits; "Ma position" also stays on the weather page — both
+  share the same `[data-geoloc]` JS handler loaded on every page
+- Footer reduced to the legal line only (© Fedi Louhichi)
+- Photo captions and the /credits page removed entirely at owner's request
+  (menu link, route, template, styles). Provenance data kept internally in
+  `data/image_credits.json` for easy restoration if a photographer asks —
+  note: images are CC BY-SA, so public deployment without visible attribution
+  is not license-compliant; restoring credit is a 5-minute change.
+- Masthead title links to /choisir-ville; dateline shows only the edition line
+
 - SSR-first Flask; cookie (not localStorage) so the server renders per-city directly
 - No database, no auth in v1 (see SPEC.md out-of-scope)
 - Region photos used only where the capital lacks a usable free photo,

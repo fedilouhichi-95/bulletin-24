@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}{{ city.name }} — L'Almanach du Ciel{% endblock %}
+{% block title %}Météo à {{ city.name }} aujourd'hui — {{ brand.name }}{% endblock %}
+{% block meta_description %}Température, vent et ciel du jour à {{ city.name }}, Tunisie, avec les prévisions sur 5 jours.{% endblock %}
 
 {% block content %}
 {% if error %}
@@ -17,7 +18,6 @@
     <figure class="photo tilt-a">
       <img src="{{ url_for('static', filename='img/cities/' ~ city.image) }}"
            alt="Photo de {{ city.name }}" width="960" height="600">
-      <figcaption class="photo__caption">{{ city.note or (city.name ~ ' — Wikimedia Commons') }}</figcaption>
     </figure>
     {% else %}
     <div class="typo-hero tilt-a">
@@ -40,12 +40,25 @@
     <h2 class="forecast__title">Les cinq prochains jours</h2>
     {% include "partials/forecast.html" %}
   </section>
+
+  {% if elsewhere %}
+  <aside class="elsewhere">
+    <h2 class="forecast__title">Ailleurs dans le ciel tunisien</h2>
+    <ul class="elsewhere__strip">
+      {% for e in elsewhere %}
+      <li class="elsewhere__card">
+        <a href="/ville/{{ e.slug }}">
+          <span class="elsewhere__name">{{ e.name }}</span>
+          <span class="elsewhere__temp">{{ e.temp | round(0) | int }}°</span>
+          <span class="elsewhere__cond">{{ e.condition }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </aside>
+  {% endif %}
+
+  <button type="button" class="geoloc" data-geoloc>Ma position</button>
 </article>
-
-<button id="geoloc" type="button" class="geoloc">Ma position</button>
 {% endif %}
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 {% endblock %}

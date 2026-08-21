@@ -1,4 +1,4 @@
-# Almanach du Ciel Tunisien
+# Bulletin 24
 
 Weather web app for the 24 governorate capitals of Tunisia. Each city renders as a
 screen-printed almanac page (Lo-Fi / risograph aesthetic) with its own free-licensed
