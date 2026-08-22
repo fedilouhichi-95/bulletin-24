@@ -25,21 +25,24 @@ SRC_DIR = BASE_DIR / "app" / "static" / "img" / "cities"
 OUT_DIR = SRC_DIR / "webp"
 HERO_WIDTH = 960
 THUMB_WIDTH = 480
+LQIP_WIDTH = 20  # ink-wash placeholder, embedded as base64 in the HTML
 QUALITY = 80
+LQIP_QUALITY = 45
 
 
-def convert(source: Path, dest: Path, max_width: int) -> None:
+def convert(source: Path, dest: Path, max_width: int,
+            quality: int = QUALITY) -> None:
     with Image.open(source) as img:
         img = img.convert("RGB")
         if img.width > max_width:
             height = round(img.height * max_width / img.width)
             img = img.resize((max_width, height), Image.LANCZOS)
-        img.save(dest, "WEBP", quality=QUALITY, method=6)
+        img.save(dest, "WEBP", quality=quality, method=6)
 
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    total_before = total_after = 0
+    total_hero = total_thumb = 0
     for city in CITIES:
         source = SRC_DIR / f"{city['slug']}.jpg"
         if not source.is_file():
@@ -47,16 +50,17 @@ def main() -> None:
             continue
         hero = OUT_DIR / f"{city['slug']}.webp"
         thumb = OUT_DIR / f"{city['slug']}-thumb.webp"
+        lqip = OUT_DIR / f"{city['slug']}-lqip.webp"
         convert(source, hero, HERO_WIDTH)
         convert(source, thumb, THUMB_WIDTH)
-        before = source.stat().st_size + 0  # original weight carried by page today
-        after = hero.stat().st_size + thumb.stat().st_size
-        total_before += before * 2  # hero+thumb were both served from the same jpg
-        total_after += after
-        print(f"[ok]   {city['slug']}: {after // 1024} Ko webp "
-              f"(source {before // 1024} Ko)")
-    print(f"\nPicker payload: ~{total_after // 1024} Ko webp vs "
-          f"~{total_before // 1048576} Mo jpg avant")
+        convert(source, lqip, LQIP_WIDTH, LQIP_QUALITY)
+        total_hero += hero.stat().st_size
+        total_thumb += thumb.stat().st_size
+        print(f"[ok]   {city['slug']}: héros {hero.stat().st_size // 1024} Ko · "
+              f"miniature {thumb.stat().st_size // 1024} Ko · "
+              f"lavis {lqip.stat().st_size} o")
+    print(f"\nPicker (24 miniatures): ~{total_thumb // 1024} Ko "
+          f"+ {24 * 500 // 1024} Ko de lavis embarqués")
 
 
 if __name__ == "__main__":

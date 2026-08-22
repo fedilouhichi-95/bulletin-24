@@ -3,6 +3,10 @@
 {% block title %}Météo à {{ city.name }} aujourd'hui — {{ brand.name }}{% endblock %}
 {% block meta_description %}Température, vent et ciel du jour à {{ city.name }}, Tunisie, avec les prévisions sur 5 jours.{% endblock %}
 
+{% block head_extra %}
+{% if image %}<link rel="preload" as="image" href="{{ url_for('static', filename=image.hero) }}" fetchpriority="high">{% endif %}
+{% endblock %}
+
 {% block content %}
 {% if error %}
 <section class="error-note">

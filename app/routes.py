@@ -1,6 +1,8 @@
 """HTTP routes — SSR-first, one blueprint, four endpoints."""
 
+import base64
 import math
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -15,6 +17,18 @@ bp = Blueprint("main", __name__)
 IMAGES_DIR = BASE_DIR / "app" / "static" / "img" / "cities"
 COOKIE_MAX_AGE = 365 * 24 * 3600
 TZ_TUNIS = ZoneInfo("Africa/Tunis")
+
+
+def _load_css_bundle() -> str:
+    """Both stylesheets inlined into <head>: zero render-blocking requests."""
+    css_dir = BASE_DIR / "app" / "static" / "css"
+    return (css_dir / "base.css").read_text(encoding="utf-8") + "\n" + (
+        css_dir / "themes.css"
+    ).read_text(encoding="utf-8")
+
+
+# Read once at import time; the bundle only changes on deploy.
+_CSS_BUNDLE = _load_css_bundle()
 
 BRAND = {
     "name": "Bulletin 24",
@@ -32,16 +46,32 @@ def image_paths(city: dict) -> dict:
     return {
         "hero": f"img/cities/webp/{city['slug']}.webp",
         "thumb": f"img/cities/webp/{city['slug']}-thumb.webp",
+        "lqip": _lqip_data_uri(city["slug"]),
     }
+
+
+_lqip_cache: dict[str, str] = {}
+
+
+def _lqip_data_uri(slug: str) -> str | None:
+    """Tiny blurred ink-wash placeholder embedded straight into the HTML."""
+    if slug not in _lqip_cache:
+        path = IMAGES_DIR / "webp" / f"{slug}-lqip.webp"
+        if not path.is_file():
+            return None
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        _lqip_cache[slug] = f"data:image/webp;base64,{encoded}"
+    return _lqip_cache[slug]
 
 
 @bp.app_context_processor
 def inject_brand():
-    """Brand block + real edition dateline for every page."""
+    """Brand block, real edition dateline and inlined CSS for every page."""
     now = datetime.now(TZ_TUNIS)
     return {
         "brand": BRAND,
         "year": now.year,
+        "css_bundle": _CSS_BUNDLE,
         "edition_fr": f"Édition de {now.strftime('%H:%M')} — "
                       f"{weather_service.format_date_fr(now.date().isoformat())} {now.year}",
     }
@@ -59,21 +89,26 @@ def index():
 
     error_state = None
     data = None
-    try:
-        data = weather_service.fetch_weather(city["lat"], city["lon"])
-    except Exception:  # noqa: BLE001 — any failure shows an honest error state
-        error_state = (
-            "La météo n'a pas pu être récupérée pour le moment. "
-            "Réessaie dans quelques instants."
-        )
+    others = [c for c in city_service.CITIES if c["slug"] != city["slug"]]
 
-    elsewhere = None
-    if data is not None:
-        others = [c for c in city_service.CITIES if c["slug"] != city["slug"]]
+    # Both Open-Meteo calls in parallel: the strip never waits on the main fetch.
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        main_future = pool.submit(weather_service.fetch_weather,
+                                  city["lat"], city["lon"])
+        strip_future = pool.submit(weather_service.fetch_current_many, others)
         try:
-            elsewhere = weather_service.fetch_current_many(others)
-        except Exception:  # noqa: BLE001 — the strip is optional decoration of real data
-            elsewhere = None
+            data = main_future.result()
+        except Exception:  # noqa: BLE001 — any failure shows an honest error state
+            error_state = (
+                "La météo n'a pas pu être récupérée pour le moment. "
+                "Réessaie dans quelques instants."
+            )
+        elsewhere = None
+        if data is not None:
+            try:
+                elsewhere = strip_future.result()
+            except Exception:  # noqa: BLE001 — optional decoration of real data
+                elsewhere = None
 
     return render_template(
         "index.html",

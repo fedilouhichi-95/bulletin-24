@@ -15,7 +15,8 @@
             style="--card-accent: {{ c.accent }}">
       {% if images[c.slug] %}
       <img class="city-card__photo" src="{{ url_for('static', filename=images[c.slug].thumb) }}"
-           alt="" loading="lazy" width="240" height="150">
+           alt="" loading="lazy" width="240" height="150"
+           {% if images[c.slug].lqip %}style="background:#d8d0b2 url('{{ images[c.slug].lqip }}') center/cover"{% endif %}>
       {% else %}
       <span class="city-card__monogram">{{ c.name[0] }}</span>
       {% endif %}

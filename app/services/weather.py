@@ -5,6 +5,7 @@ Always mock `fetch_weather` (or `requests.get`) in tests.
 """
 
 import os
+import threading
 import time
 
 import requests
@@ -57,6 +58,7 @@ _MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin",
 # Thread-safe-enough cache at this scale: dict + timestamps under the GIL.
 _cache: dict[tuple[float, float], tuple[float, dict]] = {}
 _batch_cache: dict[tuple[str, ...], tuple[float, list[dict]]] = {}
+_refreshing: set[tuple[float, float]] = set()
 
 
 def label_for_code(code) -> str:
@@ -80,15 +82,37 @@ def format_date_fr(iso_date: str) -> str:
 def fetch_weather(lat: float, lon: float) -> dict:
     """Fetch current conditions + 5-day forecast for a point.
 
-    Returns a plain dict ready for templates. Raises on network/HTTP errors —
-    callers must handle failures and show an honest error state.
+    Stale-While-Revalidate: an expired cache entry is served immediately
+    while a daemon thread refreshes it for the next visitor. Raises only
+    when there is nothing cached at all — callers must handle that case.
     """
     key = (round(lat, 4), round(lon, 4))
     now = time.monotonic()
-    cached = _cache.get(key)
-    if cached and now - cached[0] < CACHE_TTL_SECONDS:
-        return cached[1]
+    entry = _cache.get(key)
+    if entry:
+        timestamp, payload = entry
+        if now - timestamp < CACHE_TTL_SECONDS:
+            return payload
+        if key not in _refreshing:
+            _refreshing.add(key)
+            threading.Thread(target=_refresh, args=(lat, lon, key),
+                             daemon=True).start()
+        return payload
+    return _fetch_and_store(lat, lon, key)
 
+
+def _refresh(lat: float, lon: float, key: tuple[float, float]) -> None:
+    try:
+        _fetch_and_store(lat, lon, key)
+    except Exception as exc:  # noqa: BLE001 — stale data beats a broken page
+        print(f"[weather] background refresh failed for {key}: {exc}",
+              flush=True)
+    finally:
+        _refreshing.discard(key)
+
+
+def _fetch_and_store(lat: float, lon: float,
+                     key: tuple[float, float]) -> dict:
     params = {
         "latitude": lat,
         "longitude": lon,
@@ -98,11 +122,12 @@ def fetch_weather(lat: float, lon: float) -> dict:
         "timezone": TIMEZONE,
         "forecast_days": 5,
     }
-    resp = requests.get(OPEN_METEO_URL, params=params, timeout=REQUEST_TIMEOUT)
+    resp = requests.get(OPEN_METEO_URL, params=params,
+                        timeout=REQUEST_TIMEOUT)
     resp.raise_for_status()
     payload = _parse(resp.json())
 
-    _cache[key] = (now, payload)
+    _cache[key] = (time.monotonic(), payload)
     return payload
 
 
