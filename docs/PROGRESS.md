@@ -49,6 +49,10 @@
   attribution — the `/credits` page and menu link are back, fed by
   `data/image_credits.json`.
 - Masthead title links to /choisir-ville; dateline shows only the edition line
+- Security headers (CSP, HSTS, XFO, nosniff, Referrer/CORP/Permissions-Policy)
+  set natively via an app-level `after_request` hook in `app/__init__.py` —
+  HTTP Observatory grade D (30/100) → A; no new dependency. Inline CSS needs
+  `style-src 'unsafe-inline'`; speculationrules block is data, not script.
 
 - SSR-first Flask; cookie (not localStorage) so the server renders per-city directly
 - No database, no auth in v1 (see SPEC.md out-of-scope)

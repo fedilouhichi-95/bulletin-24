@@ -176,3 +176,27 @@ def test_credits_page_lists_photos(client):
     assert "Nabeul Beach" in html          # known Commons title
     assert "CC BY-SA" in html              # visible license
     assert "commons.wikimedia.org" in html  # provenance link
+
+
+# ---------- Security headers ----------
+
+def test_security_headers_on_html(client):
+    resp = client.get("/choisir-ville")
+    assert resp.headers["X-Content-Type-Options"] == "nosniff"
+    assert resp.headers["X-Frame-Options"] == "DENY"
+    assert resp.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
+    assert resp.headers["Cross-Origin-Resource-Policy"] == "same-origin"
+    assert resp.headers["Permissions-Policy"] == "geolocation=(self)"
+    assert "max-age=31536000" in resp.headers["Strict-Transport-Security"]
+    csp = resp.headers["Content-Security-Policy"]
+    assert "default-src 'self'" in csp
+    assert "frame-ancestors 'none'" in csp
+
+
+def test_security_headers_cover_static_files(client):
+    # App-level hook: static files must carry the headers too.
+    resp = client.get("/static/js/main.js")
+    assert resp.status_code == 200
+    assert resp.headers["X-Frame-Options"] == "DENY"
+    assert resp.headers["X-Content-Type-Options"] == "nosniff"
+    assert "script-src 'self'" in resp.headers["Content-Security-Policy"]

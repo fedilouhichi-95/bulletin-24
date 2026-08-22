@@ -25,6 +25,9 @@ docker build -t bulletin-24 . && docker run -p 8000:8000 bulletin-24
 - City data lives ONLY in `app/services/cities.py` (slug, French name, lat/lon, riso accent).
 - Weather codes mapped ONLY in `app/services/weather.py` (WMO code → French label).
 - Server-side rendering first; JS only for geolocation + minor niceties.
+- Security headers live in `app/__init__.py` (`SECURITY_HEADERS`, set by an
+  app-level after_request hook). Any new inline `<script>` or external origin
+  (fonts, CDN) must be reconciled with the CSP there — no inline JS exists today.
 - CSS tokens of the Lo-Fi anchor live in `app/static/css/base.css`; per-city accents in `themes.css`.
 - Images: downloaded by `scripts/fetch_images.py` into `app/static/img/cities/`, then optimized to WebP by `scripts/optimize_images.py`. Credits recorded in `data/image_credits.json` (regenerated only by the script) and displayed on the `/credits` page — most photos are CC BY-SA, so attribution must stay visible. Never hotlink.
 

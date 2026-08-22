@@ -42,6 +42,7 @@ données, aucun JavaScript obligatoire — le JS ne sert qu'à la géolocalisati
 | Cache mémoire + stale-while-revalidate | Redis/Celery | un dict horodaté suffit à cette échelle ; Redis serait un service de plus à payer et opérer |
 | Photos Wikimedia Commons | banques d'images libres | licences vérifiables, métadonnées exploitables par API, provenance tracée dans `data/image_credits.json` |
 | Docker + Render free tier | VPS dès le départ | coût 0 € validé, `render.yaml` versionné, migration vers un VPS possible sans toucher au code |
+| En-têtes de sécurité natifs (`after_request`) | flask-talisman | CSP, HSTS, anti-clickjacking… sans nouvelle dépendance ; le hook au niveau app couvre aussi les fichiers statiques |
 
 ## Performance mesurée
 
