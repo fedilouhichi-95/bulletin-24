@@ -1,41 +1,96 @@
 # Bulletin 24
 
-Weather web app for the 24 governorate capitals of Tunisia. Each city renders as a
-screen-printed almanac page (Lo-Fi / risograph aesthetic) with its own free-licensed
-photo and riso ink accent. Weather data by [Open-Meteo](https://open-meteo.com)
-(free, no API key).
+Almanach météo imprimé pour les 24 chefs-lieux de Tunisie. Chaque ville a sa page,
+son encre, sa photo libre de droits — les données viennent d'Open-Meteo, le tout tient
+dans un conteneur Docker déployé gratuitement sur Render.
 
-## Quick start
+**En ligne** : <https://bulletin-24.onrender.com>
+
+![Page d'accueil](docs/img/picker.png)
+
+## Fonctionnement
+
+```text
+navigateur ──▶ Flask (rendu serveur, Jinja)
+                 │
+                 ├─ cookie « city » absent ? ──▶ /choisir-ville (24 villes)
+                 │                              miniatures WebP + placeholders LQIP
+                 │
+                 └─ cookie présent ──▶ page almanach de la ville
+                        │
+                        ├─ Open-Meteo ×2 en parallèle (ThreadPoolExecutor)
+                        │    ├─ météo courante + prévisions 5 jours de la ville
+                        │    └─ températures des 23 autres villes (1 appel groupé)
+                        │  cache mémoire TTL 30 min · stale-while-revalidate
+                        │
+                        └─ HTML rendu (CSS inliné, Brotli) + WebP (héros/vignette/LQIP base64)
+```
+
+Un seul état utilisateur : le cookie `city`, lu côté serveur. Aucune base de
+données, aucun JavaScript obligatoire — le JS ne sert qu'à la géolocalisation.
+
+## Choix techniques
+
+| Choix | Alternative écartée | Pourquoi |
+|---|---|---|
+| Rendu serveur Flask | SPA React/Vue | pages testables avec `pytest` sans navigateur, JS réduit au strict minimum, un seul processus à déployer |
+| Cookie `city` lu par le serveur | localStorage ou BDD | l'état vit là où la page est rendue ; redirection et rendu en une requête |
+| Open-Meteo | OpenWeatherMap | aucune clé API → aucun secret à gérer ni quota à surveiller côté client |
+| Cache mémoire + stale-while-revalidate | Redis/Celery | un dict horodaté suffit à cette échelle ; Redis serait un service de plus à payer et opérer |
+| Photos Wikimedia Commons | banques d'images libres | licences vérifiables, métadonnées exploitables par API, provenance tracée dans `data/image_credits.json` |
+| Docker + Render free tier | VPS dès le départ | coût 0 € validé, `render.yaml` versionné, migration vers un VPS possible sans toucher au code |
+
+## Performance mesurée
+
+| Métrique | Avant | Après |
+|---|---|---|
+| Chargement du choix de ville | ~6 Mo de JPG pleine résolution | **~0,83 Mo** (WebP 3 tailles + LQIP) |
+| HTML servi | 10 Ko brut | **8,3 Ko** compressé Brotli, CSS inliné |
+| Requêtes bloquantes au rendu | 2 feuilles CSS | **0** |
+| Attente API visible | possible (cache expiré) | jamais (stale-while-revalidate) |
+| Temps de réponse `/` | — | **0,41 s ± 0,02 s** |
+
+## Démarrage local
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python run.py            # http://localhost:5000
+python run.py          # http://localhost:5000
 ```
 
-## Commands
+Tests et lint :
 
-| Command | What it does |
-|---|---|
-| `python run.py` | dev server with reload |
-| `pytest` | test suite |
-| `ruff check .` | lint |
-| `docker build -t almanach-meteo . && docker run -p 8000:8000 almanach-meteo` | containerized run |
-| `python scripts/fetch_images.py` | (re)download city photos from Wikimedia Commons |
+```bash
+pytest
+ruff check .
+```
 
-## Deploy (Render free tier)
+## Structure du dépôt
 
-The repo ships `render.yaml` (blueprint). On [render.com](https://render.com):
-sign in with GitHub → **New +** → **Web Service** → pick `bulletin-24` →
-plan **Free** → create. Auto-deploys on every push to `main`.
-Free tier note: the service sleeps after 15 idle minutes; first request
-wakes it (~50 s).
+```text
+app/                    application Flask (factory, routes, services, templates, statiques)
+  services/cities.py    catalogue des 24 villes — source unique de vérité
+  services/weather.py   client Open-Meteo, cache, labels WMO en français
+docs/
+  STORY.md              étude de cas : les incidents réels et leurs correctifs
+  SPEC.md               périmètre fonctionnel et critères d'acceptation
+  AGENTS.md             conventions du projet
+  PROGRESS.md           journal de bord technique
+scripts/
+  fetch_images.py       téléchargement idempotent des photos Commons + crédits
+  optimize_images.py    pipeline Pillow : héros / vignette / LQIP WebP
+tests/                  suite pytest (catalogue, parsing, cache, routes)
+Dockerfile · render.yaml · .github/workflows/ci.yml
+```
 
-## Layout
+## CI/CD
 
-- `app/` — Flask app: `routes.py`, `services/cities.py` (24 cities), `services/weather.py` (Open-Meteo + cache)
-- `app/templates/` — server-rendered pages (French UI), `app/static/` — CSS tokens, geoloc JS, city photos
-- `data/image_credits.json` — photo attributions, shown on `/credits` (regenerate via script, never hand-edit)
-- `tests/` — pytest suite; `.github/workflows/ci.yml` — lint → tests → docker build
+Chaque push sur `main` déclenche GitHub Actions :
+ruff → pytest → build Docker → **smoke test runtime** (le conteneur démarre
+réellement et doit répondre HTTP 200). Puis Render redéploie automatiquement.
+Un cron externe maintient l'instance gratuite éveillée.
 
-See `SPEC.md` for scope and `AGENTS.md` for project conventions.
+---
+
+L'histoire complète — contraintes, incidents, diagnostics et correctifs — se lit
+dans [docs/STORY.md](docs/STORY.md).
