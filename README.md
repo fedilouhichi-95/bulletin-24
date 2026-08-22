@@ -6,7 +6,9 @@ dans un conteneur Docker déployé gratuitement sur Render.
 
 **En ligne** : <https://bulletin-24.onrender.com>
 
-![Page d'accueil](docs/img/picker.png)
+| Choix de ville | L'almanach d'une ville |
+|---|---|
+| ![Choix de ville](docs/img/picker.png) | ![Almanach Mahdia](docs/img/mahdia.png) |
 
 ## Fonctionnement
 
