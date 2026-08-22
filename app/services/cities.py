@@ -8,8 +8,10 @@ Each entry:
   image    — expected filename in static/img/cities/ or None (typographic variant)
   query    — Wikimedia Commons search terms used by scripts/fetch_images.py
   seed     — exact Commons filename when one was verified, else None
-  note     — honest caption hint when the photo depicts a region landmark, not the capital itself
+   note     — honest caption hint when the photo depicts a region landmark, not the capital itself
 """
+
+import math
 
 CITIES = [
     # --- North ---
@@ -112,15 +114,15 @@ def get_city(slug: str):
 
 
 def nearest_city(lat: float, lon: float) -> dict:
-    """Return the catalog city closest to (lat, lon) using haversine distance."""
-    import math
+    """Return the catalog city closest to (lat, lon)."""
+    return min(CITIES, key=lambda c: haversine_km(lat, lon, c["lat"], c["lon"]))
 
-    def dist(c: dict) -> float:
-        phi1, phi2 = math.radians(lat), math.radians(c["lat"])
-        dphi = math.radians(c["lat"] - lat)
-        dlmb = math.radians(c["lon"] - lon)
-        a = (math.sin(dphi / 2) ** 2
-             + math.cos(phi1) * math.cos(phi2) * math.sin(dlmb / 2) ** 2)
-        return 2 * math.asin(math.sqrt(a))
 
-    return min(CITIES, key=dist)
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance between two points, in kilometers."""
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlmb = math.radians(lon2 - lon1)
+    a = (math.sin(dphi / 2) ** 2
+         + math.cos(phi1) * math.cos(phi2) * math.sin(dlmb / 2) ** 2)
+    return 6371.0 * 2 * math.asin(math.sqrt(a))

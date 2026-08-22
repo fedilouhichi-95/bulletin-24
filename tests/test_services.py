@@ -8,9 +8,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app import create_app
-from app.routes import _haversine_km
 from app.services import weather as weather_service
-from app.services.cities import CITIES, get_city, nearest_city
+from app.services.cities import CITIES, get_city, haversine_km, nearest_city
 
 # ---------- Catalog ----------
 
@@ -164,11 +163,16 @@ def test_position_api_rejects_bad_input(client):
 
 
 def test_haversine_tunis_sfax_is_reasonable():
-    km = _haversine_km(36.8065, 10.1815, 34.7406, 10.7603)
+    km = haversine_km(36.8065, 10.1815, 34.7406, 10.7603)
     assert 220 < km < 250  # real-world distance ≈ 230 km
 
 
-# ---------- Removed surfaces ----------
+# ---------- Credits page (CC BY-SA attribution) ----------
 
-def test_credits_route_is_gone(client):
-    assert client.get("/credits").status_code == 404
+def test_credits_page_lists_photos(client):
+    resp = client.get("/credits")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert "Nabeul Beach" in html          # known Commons title
+    assert "CC BY-SA" in html              # visible license
+    assert "commons.wikimedia.org" in html  # provenance link

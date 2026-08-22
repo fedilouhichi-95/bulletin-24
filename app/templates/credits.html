@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Crédits photo — {{ brand.name }}{% endblock %}
+{% block meta_description %}Photographes et licences des photos de {{ brand.name }}, issues de Wikimedia Commons.{% endblock %}
+
+{% block content %}
+<section class="credits">
+  <h1 class="picker__title misprint">Crédits photo</h1>
+  <p class="picker__intro">Les photos viennent de Wikimedia Commons. Leurs auteurs
+     et licences sont listés ici, comme l'exigent les licences CC BY-SA.</p>
+
+  <table class="almanac-table">
+    <thead>
+      <tr>
+        <th scope="col">Ville</th>
+        <th scope="col">Photo</th>
+        <th scope="col">Auteur</th>
+        <th scope="col">Licence</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in photos %}
+      <tr>
+        <td class="almanac-table__day">{{ p.city_name }}</td>
+        <td><a href="{{ p.page_url }}" rel="noopener">{{ p.title }}</a></td>
+        <td>{{ p.author }}</td>
+        <td>{{ p.license }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

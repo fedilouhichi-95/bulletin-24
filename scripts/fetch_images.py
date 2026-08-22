@@ -28,7 +28,7 @@ API = "https://commons.wikimedia.org/w/api.php"
 OUT_DIR = BASE_DIR / "app" / "static" / "img" / "cities"
 CREDITS_FILE = BASE_DIR / "data" / "image_credits.json"
 THUMB_WIDTH = 1200
-UA = {"User-Agent": "almanach-meteo-scaffold/1.0 (educational project)"}
+UA = {"User-Agent": "bulletin-24/1.0 (educational project)"}
 PAUSE_BETWEEN_CITIES = 3      # seconds — be polite to Commons
 RETRY_DELAYS = [15, 30, 60]   # backoff schedule on HTTP 429
 

@@ -1,7 +1,7 @@
-"""HTTP routes — SSR-first, one blueprint, four endpoints."""
+"""HTTP routes — SSR-first, one blueprint, five endpoints."""
 
 import base64
-import math
+import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -15,6 +15,7 @@ from .services import weather as weather_service
 bp = Blueprint("main", __name__)
 
 IMAGES_DIR = BASE_DIR / "app" / "static" / "img" / "cities"
+CREDITS_FILE = BASE_DIR / "data" / "image_credits.json"
 COOKIE_MAX_AGE = 365 * 24 * 3600
 TZ_TUNIS = ZoneInfo("Africa/Tunis")
 
@@ -129,7 +130,7 @@ def choisir_ville():
             abort(400, description="Ville inconnue.")
         resp = redirect("/")
         resp.set_cookie("city", slug, max_age=COOKIE_MAX_AGE, httponly=True,
-                        samesite="Lax")
+                        samesite="Lax", secure=request.is_secure)
         return resp
     return render_template(
         "onboarding.html",
@@ -146,8 +147,27 @@ def pick_city(slug: str):
         abort(404, description="Ville inconnue.")
     resp = redirect("/")
     resp.set_cookie("city", slug, max_age=COOKIE_MAX_AGE, httponly=True,
-                    samesite="Lax")
+                    samesite="Lax", secure=request.is_secure)
     return resp
+
+
+@bp.get("/credits")
+def credits():
+    """Photo attributions — CC BY-SA requires visible credit."""
+    entries: dict[str, dict] = {}
+    if CREDITS_FILE.is_file():
+        entries = json.loads(CREDITS_FILE.read_text(encoding="utf-8"))
+    photos = []
+    for slug, meta in entries.items():
+        city = city_service.get_city(slug)
+        photos.append({
+            "city_name": city["name"] if city else slug,
+            "title": meta.get("title", ""),
+            "author": meta.get("author", ""),
+            "license": meta.get("license", ""),
+            "page_url": meta.get("page_url", ""),
+        })
+    return render_template("credits.html", photos=photos)
 
 
 @bp.get("/api/position")
@@ -164,15 +184,6 @@ def api_position():
         "slug": nearest["slug"],
         "name": nearest["name"],
         "distance_km": round(
-            _haversine_km(lat, lon, nearest["lat"], nearest["lon"]), 1
+            city_service.haversine_km(lat, lon, nearest["lat"], nearest["lon"]), 1
         ),
     }
-
-
-def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlmb = math.radians(lon2 - lon1)
-    a = (math.sin(dphi / 2) ** 2
-         + math.cos(phi1) * math.cos(phi2) * math.sin(dlmb / 2) ** 2)
-    return 6371.0 * 2 * math.asin(math.sqrt(a))
