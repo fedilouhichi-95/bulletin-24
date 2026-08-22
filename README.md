@@ -1,14 +1,14 @@
 # Bulletin 24
 
-Almanach météo imprimé pour les 24 chefs-lieux de Tunisie. Chaque ville a sa page,
+Bulletin météo imprimé pour les 24 chefs-lieux de Tunisie. Chaque ville a sa page,
 son encre, sa photo libre de droits — les données viennent d'Open-Meteo, le tout tient
 dans un conteneur Docker déployé gratuitement sur Render.
 
 **En ligne** : <https://bulletin-24.onrender.com>
 
-| Choix de ville | L'almanach d'une ville |
+| Choix de ville | Le bulletin d'une ville |
 |---|---|
-| ![Choix de ville](docs/img/picker.png) | ![Almanach Mahdia](docs/img/mahdia.png) |
+| ![Choix de ville](docs/img/picker.png) | ![Bulletin Mahdia](docs/img/mahdia.png) |
 
 ## Fonctionnement
 
@@ -18,12 +18,13 @@ navigateur ──▶ Flask (rendu serveur, Jinja)
                  ├─ cookie « city » absent ? ──▶ /choisir-ville (24 villes)
                  │                              miniatures WebP + placeholders LQIP
                  │
-                 └─ cookie présent ──▶ page almanach de la ville
+                 └─ cookie présent ──▶ bulletin de la ville
                         │
-                        ├─ Open-Meteo ×2 en parallèle (ThreadPoolExecutor)
-                        │    ├─ météo courante + prévisions 5 jours de la ville
-                        │    └─ températures des 23 autres villes (1 appel groupé)
-                        │  cache mémoire TTL 30 min · stale-while-revalidate
+                         ├─ Open-Meteo ×2 en parallèle (ThreadPoolExecutor)
+                         │    ├─ météo courante + prévisions 5 jours de la ville
+                         │    └─ températures des 23 autres villes (1 appel groupé)
+                         │  cache mémoire TTL 30 min · stale-while-revalidate
+                         │  (sur l'appel principal ; le bandeau se masque si échec)
                         │
                         └─ HTML rendu (CSS inliné, Brotli) + WebP (héros/vignette/LQIP base64)
 ```
@@ -46,7 +47,7 @@ données, aucun JavaScript obligatoire — le JS ne sert qu'à la géolocalisati
 
 | Métrique | Avant | Après |
 |---|---|---|
-| Chargement du choix de ville | ~6 Mo de JPG pleine résolution | **~0,83 Mo** (WebP 3 tailles + LQIP) |
+| Chargement du choix de ville | ~6 Mo de JPG pleine résolution | **~0,9 Mo** (WebP 3 tailles + LQIP) |
 | HTML servi | 10 Ko brut | **8,3 Ko** compressé Brotli, CSS inliné |
 | Requêtes bloquantes au rendu | 2 feuilles CSS | **0** |
 | Attente API visible | possible (cache expiré) | jamais (stale-while-revalidate) |
@@ -81,8 +82,9 @@ docs/
 scripts/
   fetch_images.py       téléchargement idempotent des photos Commons + crédits
   optimize_images.py    pipeline Pillow : héros / vignette / LQIP WebP
-tests/                  suite pytest (catalogue, parsing, cache, routes)
-Dockerfile · render.yaml · .github/workflows/ci.yml
+tests/                  suite pytest (catalogue, parsing, cache, routes, crédits)
+wsgi.py                 point d'entrée gunicorn (utilisé par le Dockerfile)
+Dockerfile · docker-compose.yml · render.yaml · .github/workflows/ci.yml
 ```
 
 ## CI/CD

@@ -11,10 +11,10 @@
 - Geolocation button (`main.js`) → `/api/position` nearest-city haversine
 - Lo-Fi "Almanach tunisien" design: paper-yellow surface, system font mix,
   halftone photo screens, riso misregistration, rotated elements, per-city accent
-- 23 city photos downloaded from Wikimedia Commons into `app/static/img/cities/`
+- 24 city photos downloaded from Wikimedia Commons into `app/static/img/cities/`
   with credits in `data/image_credits.json`, shown on `/credits`
-  (Ariana = typographic variant by design)
-- Tests: 15 pytest cases (catalog, parsing, cache, routes, credits) — green
+  (typographic hero variant kept in code as fallback for missing images)
+- Tests: 16 pytest cases (catalog, parsing, cache, routes, credits page) — green
 - Lint: ruff — clean
 - DevOps: Dockerfile (gunicorn), docker-compose.yml, GitHub Actions CI
   (ruff → pytest → docker build). Local gunicorn run verified; docker build
@@ -44,11 +44,10 @@
   geolocation and credits; "Ma position" also stays on the weather page — both
   share the same `[data-geoloc]` JS handler loaded on every page
 - Footer reduced to the legal line only (© Fedi Louhichi)
-- Photo captions and the /credits page removed entirely at owner's request
-  (menu link, route, template, styles). Provenance data kept internally in
-  `data/image_credits.json` for easy restoration if a photographer asks —
-  note: images are CC BY-SA, so public deployment without visible attribution
-  is not license-compliant; restoring credit is a 5-minute change.
+- Photo captions and the /credits page were removed at owner's request, then
+  **restored (2026-08-22)**: most images are CC BY-SA, which requires visible
+  attribution — the `/credits` page and menu link are back, fed by
+  `data/image_credits.json`.
 - Masthead title links to /choisir-ville; dateline shows only the edition line
 
 - SSR-first Flask; cookie (not localStorage) so the server renders per-city directly

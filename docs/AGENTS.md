@@ -2,8 +2,9 @@
 
 ## Language rules
 
-- Code, identifiers, comments, commit messages, docs: **English**
-- UI strings rendered to users (templates): **French**
+- Code, identifiers, comments, commit messages: **English**
+- Docs (README, STORY) and UI strings rendered to users: **French**
+- Legacy English docs (SPEC, PROGRESS) are kept as-is; new docs are French.
 
 ## Commands
 
@@ -13,18 +14,19 @@ pip install -r requirements.txt                      # deps
 python run.py                                        # dev server (http://localhost:5000)
 pytest                                               # tests
 ruff check .                                         # lint
-docker build -t almanach-meteo . && docker run -p 8000:8000 almanach-meteo
+docker build -t bulletin-24 . && docker run -p 8000:8000 bulletin-24
 ```
 
 ## Conventions
 
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:` — lowercase, imperative.
-- Flask app factory pattern (`create_app` in `app/__init__.py`); blueprints not needed at this size.
+- Flask app factory pattern (`create_app` in `app/__init__.py`) with a single
+  blueprint (`bp` in `app/routes.py`). More blueprints are unnecessary at this size.
 - City data lives ONLY in `app/services/cities.py` (slug, French name, lat/lon, riso accent).
 - Weather codes mapped ONLY in `app/services/weather.py` (WMO code → French label).
 - Server-side rendering first; JS only for geolocation + minor niceties.
 - CSS tokens of the Lo-Fi anchor live in `app/static/css/base.css`; per-city accents in `themes.css`.
-- Images: downloaded by `scripts/fetch_images.py` into `app/static/img/cities/`, then optimized to WebP by `scripts/optimize_images.py`. Credits recorded in `data/image_credits.json` (kept out of the UI by owner decision). Never hotlink.
+- Images: downloaded by `scripts/fetch_images.py` into `app/static/img/cities/`, then optimized to WebP by `scripts/optimize_images.py`. Credits recorded in `data/image_credits.json` (regenerated only by the script) and displayed on the `/credits` page — most photos are CC BY-SA, so attribution must stay visible. Never hotlink.
 
 ## Interdictions
 

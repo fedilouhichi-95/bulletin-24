@@ -134,9 +134,10 @@ d'API visible.
   pour que l'instance gratuite ne s'endorme jamais (~730 h des 750 h offertes).
 - Coût total du projet : **0 €**.
 
-Compromis assumés et documentés : instance qui dort si le pinger s'arrête,
-attribution photo retirée de l'interface à la demande du propriétaire mais conservée
-en interne dans `data/image_credits.json`.
+Compromis assumés et documentés : instance qui dort si le pinger s'arrête.
+L'attribution photo, un temps retirée de l'interface à la demande du propriétaire,
+a ensuite été rétablie sur la page `/credits` — la majorité des images étant sous
+licence CC BY-SA, le crédit visible n'était pas négociable.
 
 ## 7. Bilan réflexif
 
