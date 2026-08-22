@@ -14,9 +14,9 @@
 {% if weather %}
 <article class="page">
   <header class="page__head">
-    {% if has_photo %}
+    {% if image %}
     <figure class="photo tilt-a">
-      <img src="{{ url_for('static', filename='img/cities/' ~ city.image) }}"
+      <img src="{{ url_for('static', filename=image.hero) }}"
            alt="Photo de {{ city.name }}" width="960" height="600">
     </figure>
     {% else %}

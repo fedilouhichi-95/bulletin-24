@@ -23,7 +23,16 @@ BRAND = {
 
 
 def image_exists(city: dict) -> bool:
-    return bool(city["image"]) and (IMAGES_DIR / city["image"]).is_file()
+    """True when optimized WebP variants exist for the city."""
+    return (IMAGES_DIR / "webp" / f"{city['slug']}.webp").is_file()
+
+
+def image_paths(city: dict) -> dict:
+    """Static-file paths of the optimized variants for templates."""
+    return {
+        "hero": f"img/cities/webp/{city['slug']}.webp",
+        "thumb": f"img/cities/webp/{city['slug']}-thumb.webp",
+    }
 
 
 @bp.app_context_processor
@@ -69,7 +78,7 @@ def index():
     return render_template(
         "index.html",
         city=city,
-        has_photo=image_exists(city),
+        image=image_paths(city) if image_exists(city) else None,
         weather=data,
         error=error_state,
         elsewhere=elsewhere,
@@ -90,7 +99,8 @@ def choisir_ville():
     return render_template(
         "onboarding.html",
         cities=city_service.CITIES,
-        images={c["slug"]: image_exists(c) for c in city_service.CITIES},
+        images={c["slug"]: image_paths(c) if image_exists(c) else None
+                for c in city_service.CITIES},
     )
 
 

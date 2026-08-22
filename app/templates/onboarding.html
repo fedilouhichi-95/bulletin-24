@@ -14,7 +14,7 @@
     <button type="submit" name="ville" value="{{ c.slug }}" class="city-card"
             style="--card-accent: {{ c.accent }}">
       {% if images[c.slug] %}
-      <img class="city-card__photo" src="{{ url_for('static', filename='img/cities/' ~ c.image) }}"
+      <img class="city-card__photo" src="{{ url_for('static', filename=images[c.slug].thumb) }}"
            alt="" loading="lazy" width="240" height="150">
       {% else %}
       <span class="city-card__monogram">{{ c.name[0] }}</span>
