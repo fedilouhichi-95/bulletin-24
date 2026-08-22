@@ -26,11 +26,15 @@
 2. Per-city theme refinements (feature #2): two-ink compositions, region-photo captions review
 3. Current-weather extras from Open-Meteo (UV, precipitation probability) if wanted
 4. Hourly forecast strip (not in v1 SPEC — ask before adding)
-5. Deployment phase: Render free tier chosen over VPS for 0-cost launch —
-   blueprint `render.yaml` committed; service created via render.com UI
-   (Docker runtime, autoDeploy on main). Live URL recorded once first
-   deploy succeeds. Oracle Cloud Always-Free VPS kept as a future
-   DevOps-learning exercise.
+5. Deployment phase DONE: live on Render free tier — https://bulletin-24.onrender.com
+   - `render.yaml` blueprint, Docker runtime, autoDeploy on main (CD via Render)
+   - Runtime smoke test added to CI (docker run + curl) after a startup bug
+     (`app:create_app()` parens broke dash) — fixed with `wsgi.py` entrypoint
+   - Perf: Pillow pipeline (`scripts/optimize_images.py`) generates WebP hero
+     (960 px) + thumb (480 px); picker payload ~6 Mo → ~0,9 Mo; static assets
+     cached 1 year; source JPGs excluded from the image via `.dockerignore`
+   - Keep-alive: external cron-job.org pings /choisir-ville every 10 min so the
+     free instance never sleeps (~730 h of the 750 h monthly allowance)
 
 ## 📌 Decisions taken
 
